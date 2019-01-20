@@ -49,7 +49,6 @@ import java.lang.ref.WeakReference;
 import java.util.List;
 
 import com.facebook.react.modules.core.PermissionListener;
-import com.facebook.react.modules.core.PermissionAwareActivity;
 
 import static com.imagepicker.utils.MediaUtils.*;
 import static com.imagepicker.utils.MediaUtils.createNewFile;
@@ -199,10 +198,7 @@ public class ImagePickerModule extends ReactContextBaseJavaModule
 
   public void doOnCancel()
   {
-    if (callback != null) {
-      responseHelper.invokeCancel(callback);
-      callback = null;
-    }
+    responseHelper.invokeCancel(callback);
   }
 
   public void launchCamera()
@@ -227,7 +223,6 @@ public class ImagePickerModule extends ReactContextBaseJavaModule
       return;
     }
 
-    this.callback = callback;
     this.options = options;
 
     if (!permissionsCheck(currentActivity, callback, REQUEST_PERMISSIONS_FOR_CAMERA))
@@ -278,6 +273,8 @@ public class ImagePickerModule extends ReactContextBaseJavaModule
       return;
     }
 
+    this.callback = callback;
+
     // Workaround for Android bug.
     // grantUriPermission also needed for KITKAT,
     // see https://code.google.com/p/android/issues/detail?id=76683
@@ -314,7 +311,6 @@ public class ImagePickerModule extends ReactContextBaseJavaModule
       return;
     }
 
-    this.callback = callback;
     this.options = options;
 
     if (!permissionsCheck(currentActivity, callback, REQUEST_PERMISSIONS_FOR_LIBRARY))
@@ -344,6 +340,8 @@ public class ImagePickerModule extends ReactContextBaseJavaModule
       responseHelper.invokeError(callback, "Cannot launch photo library");
       return;
     }
+
+    this.callback = callback;
 
     try
     {
@@ -603,9 +601,6 @@ public class ImagePickerModule extends ReactContextBaseJavaModule
         {
           ((ReactActivity) activity).requestPermissions(PERMISSIONS, requestCode, listener);
         }
-        else if (activity instanceof PermissionAwareActivity) {
-          ((PermissionAwareActivity) activity).requestPermissions(PERMISSIONS, requestCode, listener);
-        }
         else if (activity instanceof OnImagePickerPermissionsCallback)
         {
           ((OnImagePickerPermissionsCallback) activity).setPermissionListener(listener);
@@ -616,8 +611,6 @@ public class ImagePickerModule extends ReactContextBaseJavaModule
           final String errorDescription = new StringBuilder(activity.getClass().getSimpleName())
                   .append(" must implement ")
                   .append(OnImagePickerPermissionsCallback.class.getSimpleName())
-                  .append(" or ")
-                  .append(PermissionAwareActivity.class.getSimpleName())
                   .toString();
           throw new UnsupportedOperationException(errorDescription);
         }
